@@ -1,48 +1,48 @@
-import streamlit as st
-import json
-from datetime import datetime
+import streamlit as st #import and renames library to build web dashboard
+import json #lets python read and write JSON files
+from datetime import datetime # Gives me access to current date and time
 
 st.set_page_config(
     page_title="M&A Daily Deals Tracker",
     page_icon="⌬",
     layout="wide"
-)
+) #configures browser tab w/ title, icon, and layout for the Streamlit app
 
 st.title("⌬ M&A Daily Deals Tracker")
-st.caption("Global mega-deals ($1B+) — updated daily")
+st.caption("Global mega-deals ($1B+) — updated daily") #Creates header, caption and divider
 
 st.divider()
 
-def load_deals():
-    with open("data/deals.json", "r") as f:
+def load_deals(): #defines function to load deals from a JSON file
+    with open("data/deals.json", "r") as f: #Opens the deals.json file in read mode and assigns it to the variable f
         return json.load(f)
 
-deals = load_deals()
+deals = load_deals() #Calls function and stores it in the variable deals
 
-total_deals = len(deals)
+total_deals = len(deals) #counts deals in list
 values = []
 for deal in deals:
     v = deal["value"].replace("$", "").replace("B", "")
-    values.append(float(v))
-total_value = sum(values)
+    values.append(float(v)) #strips the "$" and "B" from the value string, converts it to a float
+total_value = sum(values) #calculates the total value of all deals by summing the values in the values list
 sectors = [deal["sector"] for deal in deals]
-top_sector = max(set(sectors), key=sectors.count)
+top_sector = max(set(sectors), key=sectors.count) #creates sector list and finds the most common sector in the list
 
-col1, col2, col3 = st.columns(3)
+col1, col2, col3 = st.columns(3) #creates 2 columns for the metrics
 col1.metric("Total Deals Today", total_deals)
 col2.metric("Total Deal Value", f"${total_value:.1f}B")
-col3.metric("Top Sector", top_sector)
+col3.metric("Top Sector", top_sector) 
 
 st.divider()
 
 st.subheader("Filter by Sector")
-all_sectors = ["All"] + sorted(list(set(sectors)))
-selected_sector = st.selectbox("Select a sector", all_sectors, label_visibility="collapsed")
+all_sectors = ["All"] + sorted(list(set(sectors))) #Builds a dropdown list for sectors
+selected_sector = st.selectbox("Select a sector", all_sectors, label_visibility="collapsed") 
 
 if selected_sector == "All":
     filtered_deals = deals
 else:
-    filtered_deals = [d for d in deals if d["sector"] == selected_sector]
+    filtered_deals = [d for d in deals if d["sector"] == selected_sector] #Filters the deals based on the selected sector from the dropdown list
 
 st.divider()
 
@@ -57,6 +57,9 @@ for deal in filtered_deals:
         st.write(f"**Strategic Rationale:** {deal['rationale']}")
         st.write(f"**Key Risk:** {deal['key_risk']}")
         st.markdown(f"[View Source]({deal['source_url']})")
+        #loops through every deal and creates an expandable row for each one. 
+        #a collapsible row is created for each deal, displaying the acquirer, target, and value.
 
 st.divider()
-st.caption(f"Last updated: {datetime.now().strftime('%B %d, %Y at %I:%M %p')}")
+st.caption(f"Last updated: {datetime.now().strftime('%B %d, %Y at %I:%M %p')}") 
+#Shows when the dashboard was last updated, using the current date and time formatted as "Month Day, Year at Hour:Minute AM/PM"
