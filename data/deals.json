@@ -1,0 +1,57 @@
+[
+  {
+    "acquirer": "Microsoft",
+    "target": "Activision Blizzard",
+    "value": "$68.7B",
+    "sector": "Tech",
+    "geography": "US",
+    "date": "2026-07-01",
+    "rationale": "Expands Microsoft's gaming portfolio and accelerates growth of Xbox Game Pass subscription service.",
+    "key_risk": "Regulatory scrutiny from antitrust authorities in the US and EU.",
+    "source_url": "https://www.reuters.com"
+  },
+  {
+    "acquirer": "ExxonMobil",
+    "target": "Pioneer Natural Resources",
+    "value": "$59.5B",
+    "sector": "Energy",
+    "geography": "US",
+    "date": "2026-07-01",
+    "rationale": "Doubles Permian Basin footprint and locks in low-cost oil production for the next decade.",
+    "key_risk": "Oil price volatility could erode the financial rationale post-close.",
+    "source_url": "https://www.reuters.com"
+  },
+  {
+    "acquirer": "UnitedHealth",
+    "target": "Amedisys",
+    "value": "$3.3B",
+    "sector": "Healthcare",
+    "geography": "US",
+    "date": "2026-07-01",
+    "rationale": "Expands home health and hospice capabilities to capture post-acute care market share.",
+    "key_risk": "Integration complexity across hundreds of care locations nationwide.",
+    "source_url": "https://www.prnewswire.com"
+  },
+  {
+    "acquirer": "BlackRock",
+    "target": "Global Infrastructure Partners",
+    "value": "$12.5B",
+    "sector": "Finance",
+    "geography": "US / UK",
+    "date": "2026-07-01",
+    "rationale": "Builds out alternatives platform with $100B+ in infrastructure AUM ahead of expected capex supercycle.",
+    "key_risk": "Cultural integration between BlackRock's public markets DNA and GIP's private markets focus.",
+    "source_url": "https://www.reuters.com"
+  },
+  {
+    "acquirer": "Synopsys",
+    "target": "Ansys",
+    "value": "$35.0B",
+    "sector": "Tech",
+    "geography": "US",
+    "date": "2026-07-01",
+    "rationale": "Creates a full-stack simulation and chip design platform to serve surging AI semiconductor demand.",
+    "key_risk": "Deal size requires significant debt load that pressures near-term free cash flow.",
+    "source_url": "https://www.sec.gov"
+  }
+]
