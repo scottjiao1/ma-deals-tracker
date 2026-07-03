@@ -5,7 +5,7 @@ from email.utils import parsedate_to_datetime
 import json
 import os
 
-print("Starting M&A article fetch — Google News + SEC EDGAR...")
+print("Starting M&A article fetch...")
 
 articles = []
 
@@ -17,18 +17,18 @@ headers = {
                   "Chrome/120.0.0.0 Safari/537.36"
 }
 
-MAX_ENTRIES_PER_QUERY = 50
+MAX_ENTRIES_PER_FEED = 25
 
-# ─── GOOGLE NEWS QUERIES — focused on COMPLETED deals ─────────────
+# ─── GOOGLE NEWS QUERIES ──────────────────────────────────────────
 
 google_queries = [
-    "completes acquisition billion",
-    "closes acquisition billion",
-    "acquires billion deal",
-    "finalizes merger billion",
+    "merger acquisition billion",
+    "company acquires billion",
+    "private equity acquisition billion",
+    "takeover bid billion",
 ]
 
-print("\nFetching Google News queries (completed deals)...")
+print("\nFetching Google News queries...")
 
 for query in google_queries:
     url_query = query.replace(" ", "+")
@@ -38,7 +38,7 @@ for query in google_queries:
         response = requests.get(url, headers=headers, timeout=10)
         feed = feedparser.parse(response.content)
 
-        entries = feed.entries[:MAX_ENTRIES_PER_QUERY]
+        entries = feed.entries[:MAX_ENTRIES_PER_FEED]
 
         for entry in entries:
             articles.append({
@@ -49,13 +49,48 @@ for query in google_queries:
                 "text": entry.get("summary", "")
             })
 
-        print(f"  '{query}': {len(entries)} articles")
+        print(f"  Google '{query}': {len(entries)} articles")
 
     except Exception as e:
-        print(f"  '{query}' error: {e}")
+        print(f"  Google '{query}' error: {e}")
 
 
-# ─── SEC EDGAR ─────────────────────────────────────────────────────
+# ─── GOOGLE NEWS INTERNATIONAL — LIGHT VERSION ────────────────────
+
+international_queries = [
+    "merger acquisition billion",
+]
+
+print("\nFetching Google News International...")
+
+for query in international_queries:
+    for region, lang in [("GB", "en-GB")]:
+        url_query = query.replace(" ", "+")
+        url = f"https://news.google.com/rss/search?q={url_query}&hl={lang}&gl={region}&ceid={region}:{lang[:2]}"
+
+        try:
+            response = requests.get(url, headers=headers, timeout=10)
+            feed = feedparser.parse(response.content)
+
+            entries = feed.entries[:MAX_ENTRIES_PER_FEED]
+
+            for entry in entries:
+                articles.append({
+                    "headline": entry.get("title", ""),
+                    "url": entry.get("link", ""),
+                    "date": entry.get("published", "Unknown"),
+                    "source": "Google News International",
+                    "text": entry.get("summary", "")
+                })
+
+            print(f"  {region} '{query}': {len(entries)} articles")
+
+        except Exception as e:
+            print(f"  {region} error: {e}")
+
+
+
+# ─── SEC EDGAR ────────────────────────────────────────────────────
 
 print("\nFetching SEC EDGAR...")
 
@@ -77,7 +112,8 @@ try:
 
     sec_data = sec_response.json()
     sec_hits = sec_data.get("hits", {}).get("hits", [])
-    sec_hits = sec_hits[:MAX_ENTRIES_PER_QUERY]
+
+    sec_hits = sec_hits[:50]
 
     for hit in sec_hits:
         source = hit.get("_source", {})
@@ -98,7 +134,7 @@ except Exception as e:
     print(f"  SEC EDGAR error: {e}")
 
 
-# ─── DEDUPLICATE BY URL ────────────────────────────────────────────
+# ─── DEDUPLICATE BY URL ───────────────────────────────────────────
 
 print(f"\nTotal raw articles before dedup: {len(articles)}")
 
@@ -107,8 +143,10 @@ unique_articles = []
 
 for article in articles:
     url = article.get("url", "")
+
     if not url:
         continue
+
     if url not in seen_urls:
         seen_urls.add(url)
         unique_articles.append(article)
@@ -116,7 +154,7 @@ for article in articles:
 print(f"After URL dedup: {len(unique_articles)}")
 
 
-# ─── FILTER: LAST 7 DAYS ──────────────────────────────────────────
+# ─── FILTER: LAST 7 DAYS ─────────────────────────────────────────
 
 print("Filtering for last 7 days...")
 
@@ -127,32 +165,41 @@ for article in unique_articles:
     try:
         article_date = parsedate_to_datetime(article["date"])
         article_date = article_date.replace(tzinfo=None)
+
         if article_date >= seven_days_ago:
             recent_articles.append(article)
+
     except Exception:
         recent_articles.append(article)
 
 print(f"Last 7 days: {len(recent_articles)}")
 
 
-# ─── FILTER: MUST MENTION BILLION ─────────────────────────────────
+# ─── FILTER: M&A KEYWORDS ─────────────────────────────────────────
 
-print("Filtering for billion-dollar deals...")
+print("Filtering for M&A keywords...")
 
-billion_articles = []
+ma_keywords = [
+    "acquires", "acquire", "acquisition", "merger", "merges",
+    "takeover", "buyout", "purchase", "buys", "stake",
+    "agreement", "transaction", "combine", "offer", "bid"
+]
+
+filtered_articles = []
 
 for article in recent_articles:
     headline_lower = article.get("headline", "").lower()
-    if "billion" in headline_lower or "bn" in headline_lower:
-        billion_articles.append(article)
 
-print(f"Billion-dollar deals: {len(billion_articles)}")
+    if any(keyword in headline_lower for keyword in ma_keywords):
+        filtered_articles.append(article)
+
+print(f"M&A relevant: {len(filtered_articles)}")
 
 
-# ─── SAVE ──────────────────────────────────────────────────────────
+# ─── SAVE ─────────────────────────────────────────────────────────
 
 with open("data/raw_articles.json", "w") as f:
-    json.dump(billion_articles, f, indent=2)
+    json.dump(filtered_articles, f, indent=2)
 
-print(f"\nSaved {len(billion_articles)} articles to data/raw_articles.json")
+print(f"\nSaved {len(filtered_articles)} articles to data/raw_articles.json")
 print("Done!")
